@@ -1,7 +1,6 @@
 h5py
 s3fs
-json
 boto3
-pickle
 pathlib
 keras
+tensorflow
