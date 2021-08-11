@@ -57,9 +57,9 @@ app = Flask(__name__)
 app.config["SESSION_PERMANENT"] = False
 Session(app)
 
-S3_BUCKET     = os.environ.get("S3_BUCKET")
-S3_KEY        = os.environ.get("S3_KEY")
-S3_SECRET     = os.environ.get("S3_SECRET")
+S3_BUCKET     = ${{ secrets.S3_BUCKET }}
+S3_KEY        = ${{ secrets.S3_KEY }}
+S3_SECRET     = ${{ secrets.S3_SECRET }}
 S3_LOCATION   = 'http://{}.s3.amazonaws.com/'.format(S3_BUCKET)
 
 
