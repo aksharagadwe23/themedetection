@@ -12,7 +12,6 @@ import pathlib
 import requests
 import tempfile
 
-
 nltk.download('words')
 nltk.download('stopwords')
 from nltk.corpus import stopwords
@@ -58,8 +57,8 @@ app.config["SESSION_PERMANENT"] = False
 Session(app)
 
 S3_BUCKET     = "uploadedfilesfromtestui"
-S3_KEY        = "AKIA2XRBHB6LW3D4YJNJ"
-S3_SECRET     = "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"
+S3_KEY        = ""
+S3_SECRET     = ""
 S3_LOCATION   = "s3://uploadedfilesfromtestui/"
 
 
