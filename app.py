@@ -1,7 +1,7 @@
 import os
 import io
-# import re
-# import nltk
+import re
+import nltk
 import time
 import h5py
 import s3fs
@@ -13,13 +13,13 @@ import requests
 import tempfile
 
 
-# nltk.download('words')
-# nltk.download('stopwords')
-# from nltk.corpus import stopwords
+nltk.download('words')
+nltk.download('stopwords')
+from nltk.corpus import stopwords
 
 
 
-
+import numpy as np
 from flask import (Blueprint,
     render_template,
     Flask,request,
@@ -41,26 +41,27 @@ from keras.preprocessing.sequence import pad_sequences
 
 
 
-# words = set(nltk.corpus.words.words())
-# stop_words = set(stopwords.words('english'))
+words = set(nltk.corpus.words.words())
+stop_words = set(stopwords.words('english'))
 
-# stop_words.remove('how')
-# stop_words.remove('where')
-# stop_words.remove('when')
-# stop_words.remove('who')
-# stop_words.remove('what')
-# stop_words.remove('which')
-# stop_words.remove('whom')
+stop_words.remove('how')
+stop_words.remove('where')
+stop_words.remove('when')
+stop_words.remove('who')
+stop_words.remove('what')
+stop_words.remove('which')
+stop_words.remove('whom')
 
 
 app = Flask(__name__)
 app.config["SESSION_PERMANENT"] = False
 Session(app)
 
-S3_BUCKET     = os.environ.get("S3_BUCKET")
-S3_KEY        = os.environ.get("S3_KEY")
-S3_SECRET     = os.environ.get("S3_SECRET")
-S3_LOCATION   = 'http://{}.s3.amazonaws.com/'.format(S3_BUCKET)
+S3_BUCKET     = "uploadedfilesfromtestui"
+S3_KEY        = "AKIA2XRBHB6LW3D4YJNJ"
+S3_SECRET     = "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"
+S3_LOCATION   = "s3://uploadedfilesfromtestui/"
+
 
 
 
@@ -78,22 +79,22 @@ def index():
     return render_template('index.html')
 
 
-# def clean(text):
-#     text = text.lower()
-#     text = re.sub("mhm","",text)
-#     text = re.sub("hmm","",text)
-#     text = re.sub("yeah","",text)
-#     text = re.sub("'m"," am",text)
-#     text = re.sub("'s"," is",text)
-#     text = re.sub("'ll"," will",text)
-#     text = re.sub("'ve"," have",text)
-#     text = re.sub(r'[^\w\s]', '', text)
-#     text = " ".join(w for w in nltk.wordpunct_tokenize(text)
-#          if w in words )
-#     text = " ".join(w for w in nltk.wordpunct_tokenize(text)
-#          if w not in stop_words)
-#     text = ' '.join(text.split())
-#     return text
+def clean(text):
+    text = text.lower()
+    text = re.sub("mhm","",text)
+    text = re.sub("hmm","",text)
+    text = re.sub("yeah","",text)
+    text = re.sub("'m"," am",text)
+    text = re.sub("'s"," is",text)
+    text = re.sub("'ll"," will",text)
+    text = re.sub("'ve"," have",text)
+    text = re.sub(r'[^\w\s]', '', text)
+    text = " ".join(w for w in nltk.wordpunct_tokenize(text)
+         if w in words )
+    text = " ".join(w for w in nltk.wordpunct_tokenize(text)
+         if w not in stop_words)
+    text = ' '.join(text.split())
+    return text
 
 
 
@@ -133,6 +134,8 @@ def upload():
     LanguageCode='en-US',
     OutputBucketName= "uploadedfilesfromtestui"
     )
+
+    
     while True:
         status = transcribe.get_transcription_job(TranscriptionJobName=job_name)
         if status['TranscriptionJob']['TranscriptionJobStatus'] in ['COMPLETED', 'FAILED']:
@@ -140,7 +143,13 @@ def upload():
     time.sleep(5)
     pred=prediction(job_name)
 
-    return str(pred[0])
+    dict_ = {0:"How-To",1:"Questionnaire",2:"Review",3:"Event"}
+
+    max_pred = np.argmax(pred,axis=0)
+
+    # return dict_[max_pred]
+    return str(pred)
+
 
 
 def prediction(job_name):
@@ -161,7 +170,7 @@ def prediction(job_name):
         data.seek(0)    # move back to the beginning after writing
         tokenizer = pickle.load(data)
 
-    ex_seq = tokenizer.texts_to_sequences(text)
+    ex_seq = tokenizer.texts_to_sequences(clean(text))
     ex_s_p = pad_sequences(ex_seq, maxlen=450)
     pred = loaded_model.predict(ex_s_p)
 
