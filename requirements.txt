@@ -3,3 +3,4 @@ s3fs
 boto3
 pathlib
 keras
+tensorflow
